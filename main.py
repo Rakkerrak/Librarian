@@ -39,15 +39,21 @@ async def on_guild_join(guild):
 async def test(ctx):
     message = await ctx.send("React!")
     # checkMark = bot.get_emoji(839142440266104852)
-    await message.add_reaction("✅")
+    messagebot = await message.add_reaction("✅")
     def check(reaction, user):
-        return user != message.author and str(reaction.emoji) == '✅'
+        return message.id == messagebot.id and user != message.author and str(reaction.emoji) == '✅'
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=check)
     except asyncio.TimeoutError:
         await ctx.send("Too long!")
     else:
+        # recentMsgs = await ctx.history(limit=1).flatten()
+        # msg = recentMsgs[0]
+        # if msg.id == message.id:
         await ctx.send("Done!")
+
+
+
 
 @bot.command(name="ping")
 async def ping(ctx):
