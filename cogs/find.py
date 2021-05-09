@@ -31,6 +31,10 @@ class find(commands.Cog):
                 break
         await ctx.send("Done!")
 
+    @commands.command(name="nextid")
+    async def nextid(self, ctx):
+        pass
+
 
 
 def setup(bot):

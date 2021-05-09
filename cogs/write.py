@@ -30,6 +30,7 @@ def validator(newEntry):
 
 
 def timecheck(queue, minutes):
+    #checks to make sure there are no timed out entries in the queue
     toDelete = []
     for idEntry in queue:
         entry = queue[idEntry]
@@ -41,6 +42,18 @@ def timecheck(queue, minutes):
 
     return queue
 
+
+def checkid(queue, id):
+    #checks if an id is an int and in the current queue
+    try:
+        id = int(id)
+    except:
+        return False,"That's not a number!"
+
+    if id not in queue:
+        return False, "That id isn't active!  Try remaking your write request to get a new id."
+
+    return True, "Good ID"
 
 
 class write(commands.Cog):
@@ -63,7 +76,6 @@ class write(commands.Cog):
                 rangen = random.randint(0,99999)
             self.queue[rangen] = {"entry": result, "userid": ctx.message.author.id, "timestamp": datetime.datetime.now() }
             await ctx.send(f"The id for your entry is {rangen} \nIt looks like this:")
-            # await ctx.send(queue)
             await ctx.send(embed = embedder.book_embedder(result))
             await ctx.send(f"If you would like to proceed, please use the  `.insert {rangen}` command.")
             self.queue = timecheck(self.queue, 5)
@@ -74,16 +86,14 @@ class write(commands.Cog):
     async def insert(self, ctx, id):
         self.queue = timecheck(self.queue, 5)
 
-        try:
-            id = int(id)
-        except:
-            await ctx.send("That's not a number!")
-
-        if id not in self.queue:
-            await ctx.send("That id isn't active!  Try remaking your write request to get a new id.")
+        check, response = checkid(self.queue, id)
+        if check == False:
+            await ctx.send(response)
             return
 
+        id = int(id)
         request = self.queue[id]
+        entry = request["entry"]
 
         if ctx.message.author.id == request["userid"]:
             await ctx.send("Writing!")
@@ -91,7 +101,34 @@ class write(commands.Cog):
             connection = Connect.writer_connection()
             db = connection.library
             # verify = db.books.insert_one( request["entry"])
-            await ctx.send("Added to database!")
+            await ctx.send(f"Added {entry} to database!")
+
+    @commands.command(name="viewqueue")
+    async def viewqueue(self, ctx):
+        self.queue = timecheck(self.queue, 5)
+        current = []
+        for id in self.queue:
+            current.append(id)
+        await ctx.send (f"Current items in queue: {current}")
+
+    @commands.command(name="viewfullqueue")
+    async def viewfullqueue(self, ctx):
+        self.queue = timecheck(self.queue, 5)
+        await ctx.send(self.queue)
+
+    @commands.command(name="viewid")
+    async def viewid(self, ctx, *ids):
+        self.queue = timecheck(self.queue, 5)
+        for id in ids:
+            check, response = checkid(self.queue, id)
+            if check == False:
+                await ctx.send(response)
+            else:
+                # await ctx.send(self.queue[id])
+                id = int(id)
+                entry = self.queue[id]
+                book = entry["entry"]
+                await ctx.send(embed = embedder.book_embedder(book))
 
 
 
