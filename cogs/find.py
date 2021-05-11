@@ -4,6 +4,7 @@ from pymongo import MongoClient
 
 from login import Connect
 import cogs.embedder as embedder
+import cogs.usercheck as usercheck
 
 
 class find(commands.Cog):
@@ -12,6 +13,9 @@ class find(commands.Cog):
 
     @commands.command(name="find")
     async def find(self, ctx, field, *, message):
+        if usercheck.usercheck(ctx.message.author.id) == False:
+            await ctx.send("You're not authorized to use that command!")
+            return
         connection = Connect.reader_connection()
         db = connection.library
         value = f"{message}"
@@ -33,7 +37,16 @@ class find(commands.Cog):
 
     @commands.command(name="nextid")
     async def nextid(self, ctx):
-        pass
+        if usercheck.usercheck(ctx.message.author.id) == False:
+            await ctx.send("You're not authorized to use that command!")
+            return
+        connection = Connect.reader_connection()
+        db = connection.library
+        cursor = db.books.aggregate([{"$sort" : { "_id" : -1 }}]).batch_size(1)
+        book = cursor.next()
+        await ctx.send(f"Most recently used id is {book['_id']}")
+        count = db.books.count_documents({})
+        await ctx.send(f"There are {count} books in total.")
 
 
 

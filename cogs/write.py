@@ -10,7 +10,7 @@ from pymongo import MongoClient
 
 from login import Connect
 import cogs.embedder as embedder
-
+import cogs.usercheck as usercheck
 
 
 def validator(newEntry):
@@ -61,10 +61,13 @@ class write(commands.Cog):
         self.bot = bot
         self.queue = {}
 
-    #TODO: .nextid
 
     @commands.command(name="write")
     async def write(self, ctx, *, newEntry):
+        self.queue = timecheck(self.queue, 5)
+        if usercheck.usercheck(ctx.message.author.id) == False:
+            await ctx.send("You're not authorized to use that command!")
+            return
 
         valid, result = validator(newEntry)
 
@@ -85,6 +88,9 @@ class write(commands.Cog):
     @commands.command(name="insert")
     async def insert(self, ctx, id):
         self.queue = timecheck(self.queue, 5)
+        if usercheck.usercheck(ctx.message.author.id) == False:
+            await ctx.send("You're not authorized to use that command!")
+            return
 
         check, response = checkid(self.queue, id)
         if check == False:
